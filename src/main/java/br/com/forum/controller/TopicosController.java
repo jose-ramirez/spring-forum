@@ -8,6 +8,9 @@ import br.com.forum.modelo.Topico;
 import br.com.forum.repository.CursoRepository;
 import br.com.forum.repository.TopicoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -15,7 +18,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -29,14 +31,20 @@ public class TopicosController {
 	private CursoRepository cursoRepository;
 
 	@GetMapping
-	public List<TopicoDto> lista(String nomeCurso) {
+	public Page<TopicoDto> lista(@RequestParam(required = false) String nomeCurso,
+								 @RequestParam int page,
+								 @RequestParam int rows) {
+
+		Pageable pagination = PageRequest.of(page, rows);
+
+		Page<Topico> topicos;
 		if (nomeCurso == null) {
-			List<Topico> topicos = topicoRepository.findAll();
-			return TopicoDto.converter(topicos);
+			topicos = topicoRepository.findAll(pagination);
 		} else {
-			List<Topico> topicos = topicoRepository.findByCursoNome(nomeCurso);
-			return TopicoDto.converter(topicos);
+			topicos = topicoRepository.findByCursoNome(pagination, nomeCurso);
 		}
+
+		return TopicoDto.converter(topicos);
 	}
 	
 	@PostMapping
