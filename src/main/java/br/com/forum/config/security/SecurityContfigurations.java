@@ -1,5 +1,7 @@
 package br.com.forum.config.security;
 
+import br.com.forum.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -11,12 +13,19 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
 @Configuration
 public class SecurityContfigurations extends WebSecurityConfigurerAdapter {
 
     private final AutenticacaoService service;
+
+    @Autowired
+    private TokenService tokenService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     public SecurityContfigurations(AutenticacaoService service) {
         this.service = service;
@@ -36,12 +45,13 @@ public class SecurityContfigurations extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-            .antMatchers(HttpMethod.GET,"/topicos").permitAll()
-            .antMatchers(HttpMethod.GET,"/topicos/*").permitAll()
-            .antMatchers(HttpMethod.POST,"/auth").permitAll()
+            .antMatchers(HttpMethod.GET, "/topicos").permitAll()
+            .antMatchers(HttpMethod.GET, "/topicos/*").permitAll()
+            .antMatchers(HttpMethod.POST, "/auth").permitAll()
             .anyRequest().authenticated()
             .and().csrf().disable()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and().addFilterBefore(new AutenticacaoViaTokenFilter(tokenService, usuarioRepository), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Override
