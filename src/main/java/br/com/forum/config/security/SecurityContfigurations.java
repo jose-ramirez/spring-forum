@@ -1,7 +1,5 @@
 package br.com.forum.config.security;
 
-import br.com.forum.repository.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -53,7 +51,9 @@ public class SecurityContfigurations extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    public void configure(WebSecurity web) throws Exception {
-        super.configure(web);
+    public void configure(WebSecurity webSecutiry) throws Exception {
+        webSecutiry
+            .ignoring()
+            .antMatchers("/**.html", "/v2/api-docs", "/webjars/**", "/configuration/**", "/swagger-resources/**");
     }
 }
