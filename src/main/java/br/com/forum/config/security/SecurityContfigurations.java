@@ -21,14 +21,11 @@ public class SecurityContfigurations extends WebSecurityConfigurerAdapter {
 
     private final AutenticacaoService service;
 
-    @Autowired
-    private TokenService tokenService;
+    private final AutenticacaoViaTokenFilter filter;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    public SecurityContfigurations(AutenticacaoService service) {
+    public SecurityContfigurations(AutenticacaoService service, AutenticacaoViaTokenFilter filter) {
         this.service = service;
+        this.filter = filter;
     }
 
     @Override
@@ -46,12 +43,13 @@ public class SecurityContfigurations extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
             .antMatchers(HttpMethod.GET, "/topicos").permitAll()
-            .antMatchers(HttpMethod.GET, "/topicos/*").permitAll()
+            .antMatchers(HttpMethod.GET, "/topicos/**").permitAll()
             .antMatchers(HttpMethod.POST, "/auth").permitAll()
+            .antMatchers(HttpMethod.GET, "/actuator/**").permitAll()
             .anyRequest().authenticated()
             .and().csrf().disable()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and().addFilterBefore(new AutenticacaoViaTokenFilter(tokenService, usuarioRepository), UsernamePasswordAuthenticationFilter.class);
+            .and().addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
     }
 
     @Override
